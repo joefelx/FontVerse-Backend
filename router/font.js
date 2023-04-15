@@ -21,33 +21,20 @@ const upload = multer({ storage: storage });
 // create font style and store in db
 router.post("/upload", upload.single("font"), async (req, res) => {
   const file = req.file;
-  const formData = new FormData();
-  formData.append("file", fs.createReadStream(file.path));
-  const { data, error } = await supabase.storage
-    .from("../backend/public/fonts")
-    .upload(file.originalname, formData);
+  const font = await Font(req.body);
 
-  if (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to upload file" });
-  } else {
-    fs.unlinkSync(file.path);
-    res.status(200).json(data);
+  try {
+    // create new font object
+    const savedFont = await font.save();
+    res.status(200).json({
+      status: "success",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      data: error,
+    });
   }
-  // const font = await Font(req.body)
-
-  // try {
-  //   // create new font object
-  //   // const savedFont = await font.save();
-  //   res.status(200).json({
-  //     status: "success",
-  //   });
-  // } catch (error) {
-  //   res.status(500).json({
-  //     status: "failed",
-  //     data: error,
-  //   });
-  // }
 });
 
 // returning the font style to the project url
@@ -84,11 +71,11 @@ router.get("/", async (req, res) => {
   const fontName = req.query.fontName;
   const fontWeight = req.query.fontWeight;
 
-  const fonts = fontName
-    ? await Font.find({ fontName: fontName })
-    : await Font.find({ fontWeight: fontWeight });
-
   try {
+    const fonts = fontName
+      ? await Font.find({ fontName: fontName })
+      : await Font.find({ fontWeight: fontWeight });
+
     res.status(200).json({
       status: "success",
       data: fonts,
