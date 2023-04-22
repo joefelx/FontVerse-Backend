@@ -16,6 +16,7 @@ router.post("/auth/signup", async (req, res) => {
       const user = await User({
         email: req.body.email,
         password: hashedPassword,
+        admin: req.body.admin,
       });
 
       const newUser = await user.save();
@@ -47,7 +48,7 @@ router.post("/auth/signin", async (req, res) => {
       res.status(404).json({
         status: "failed",
         data: "No user found",
-        logged: true,
+        logged: false,
       });
 
     const validPassword = await bcrypt.compare(

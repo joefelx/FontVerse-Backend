@@ -1,9 +1,14 @@
-require("dotenv").config();
-const { createClient } = require("@supabase/supabase-js");
+const multer = require("multer");
 
-const supabaseUrl = "https://njamnjzduqvzmjmupjpk.supabase.co";
-const supabaseKey = process.env.SUPABASE_KEY;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "../backend/public/fonts");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const upload = multer({ storage: storage });
 
-module.exports = supabase;
+module.exports = upload;

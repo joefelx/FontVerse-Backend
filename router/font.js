@@ -1,38 +1,46 @@
 const router = require("express").Router();
-const multer = require("multer");
-const FormData = require("form-data");
-const fs = require("fs");
 
+const User = require("../model/User");
 const Font = require("../model/Font");
-const supabase = require("../storage");
+
+const upload = require("../storage");
 const { getFont } = require("../utils/utils");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "../backend/public/fonts");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
 
 // create font style and store in db
 router.post("/upload", upload.single("font"), async (req, res) => {
   const file = req.file;
-  const font = await Font(req.body);
+  const { userId, fontName, fontDetails, fontWeight, price } = req.body;
+
+  const fontRefactor = {
+    userId,
+    fontName,
+    fontDetails,
+    fontWeight,
+    price,
+    fontUrl: `https://font-verse-api.onrender.com/fonts/${file.filename}`,
+  };
 
   try {
-    // create new font object
-    const savedFont = await font.save();
-    res.status(200).json({
-      status: "success",
-    });
+    const checkAdmin = await User.findById(userId);
+    if (checkAdmin.admin) {
+      // create new font object
+      const font = await Font(fontRefactor);
+      const savedFont = await font.save();
+
+      res.status(200).json({
+        status: "success",
+        data: savedFont,
+      });
+    } else {
+      res.status(400).json({
+        status: "failed",
+        data: "You are not permitted",
+      });
+    }
   } catch (error) {
     res.status(500).json({
       status: "failed",
-      data: error,
+      data: "You are not permitted",
     });
   }
 });
