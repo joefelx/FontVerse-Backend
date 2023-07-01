@@ -9,27 +9,28 @@ async function getFont(fontFamily) {
       fontName: font,
     });
 
-    fontFound.map((f) => {
-      writeCss(font, f["fontWeight"], f["fontUrl"]);
-    });
+    await writeCss(fontFound);
   });
-
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve(formatString);
     }, 500);
   });
-  // return formatString;
 }
 
-function writeCss(fontFamily, fontWeight, fontUrl) {
-  formatString += `
+async function writeCss(fontFound) {
+  fontFound[0].fontWeights.map((w) => {
+    formatString += `
 
-@font-face {
-  font-family: '${fontFamily}';
-  src: url('${fontUrl}') format('woff2');
-  font-weight: ${fontWeight};
-}`;
+  @font-face {
+    font-family: '${fontFound[0].fontName}';
+    src: url('${w.fontURL}') format('woff2');
+    font-weight: ${w.fontWeight};
+  }`;
+  });
+
+  console.log("rendered");
+  return "rendered";
 }
 
 module.exports = { getFont };
