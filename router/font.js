@@ -15,9 +15,11 @@ router.post("/upload", upload.single("font"), async (req, res) => {
     userId,
     fontName,
     fontDetails,
-    fontWeight,
+    fontWeights: {
+      fontWeight,
+      fontURL: `https://font-verse-api.onrender.com/fonts/${file.filename}`,
+    },
     price,
-    fontUrl: `https://font-verse-api.onrender.com/fonts/${file.filename}`,
   };
 
   try {
@@ -26,7 +28,6 @@ router.post("/upload", upload.single("font"), async (req, res) => {
       // create new font object
       const font = await Font(fontRefactor);
       const savedFont = await font.save();
-
       res.status(200).json({
         status: "success",
         data: savedFont,
@@ -43,6 +44,27 @@ router.post("/upload", upload.single("font"), async (req, res) => {
       data: "You are not permitted",
     });
   }
+});
+
+router.post("/update", upload.single("font"), async (req, res) => {
+  const file = req.file;
+  const { fontName, fontWeight } = req.body;
+
+  const font = await Font.findOne({ fontName: fontName });
+
+  await font.updateOne({
+    $push: {
+      fontWeights: {
+        fontWeight,
+        fontURL: `https://font-verse-api.onrender.com/fonts/${file.filename}`,
+      },
+    },
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: "Updated",
+  });
 });
 
 // returning the font style to the project url
@@ -62,10 +84,7 @@ router.get("/style", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const fonts = await Font.find();
-    res.status(200).json({
-      status: "success",
-      data: fonts,
-    });
+    res.status(200).json(fonts);
   } catch (error) {
     res.status(500).json({
       status: "failed",
