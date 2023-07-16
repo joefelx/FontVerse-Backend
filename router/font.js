@@ -103,10 +103,7 @@ router.get("/", async (req, res) => {
       ? await Font.find({ fontName: fontName })
       : await Font.find({ fontWeight: fontWeight });
 
-    res.status(200).json({
-      status: "success",
-      data: fonts,
-    });
+    res.status(200).json(fonts);
   } catch (error) {
     res.status(500).json({
       status: "failed",
